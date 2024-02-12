@@ -125,7 +125,7 @@ class GUIHandler(VideoHandler, DialogBoxHandler):
     def __init__(self, camera_index, resize_factor):
         super(GUIHandler, self).__init__(camera_index=camera_index, resize_factor=resize_factor)
 
-    def handle_unknown_face(self, frame, face_location):
+    def prompt_for_name_of_unknown_face(self, frame, face_location):
         # Get face image
         scaled_boundary_box = self.scale_up_boundary_box(face_location)
         face_image = self.picture_from_boundary_box(frame, scaled_boundary_box)

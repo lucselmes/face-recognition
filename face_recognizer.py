@@ -22,6 +22,9 @@ class FaceStorage():
             self.load_cache()
         self.expiration_time = expiration_time
 
+    def update_face_encodings(self, face_encodings):
+        self.face_encodings = face_encodings
+
     def serialize_face_encoding(self, face_encoding):
         return json.dumps(face_encoding.tolist())
     
@@ -34,17 +37,28 @@ class FaceStorage():
         self.face_encodings_metadata[serialized_face_encoding] = {'Name': name, 'Last_time_seen': datetime.now()}
         self.face_encodings.append(face_encoding)
 
+    def remove_from_array(self, base_array, target_array):
+        for index in range(len(base_array)):
+            if np.array_equal(base_array[index], target_array):
+                return np.delete(base_array, index, axis=0).tolist()
+        raise ValueError('remove_from_array(array, x): x not in array')
+
     def remove_face_from_dataset(self, serialized_face_encoding):
         """ Removes a face from the dataset """
-        try:
-            deserialized_face_encoding = self.deserialize_face_encoding(serialized_face_encoding)
-            self.face_encodings.remove(deserialized_face_encoding)
-        except:
-            print("Removing face from dataset failed. Face not found in dataset.")
-            print("Continuing with the rest of the program.") 
-            pass
-        else:
-            _ = self.face_encodings_metadata.pop(serialized_face_encoding)
+        deserialized_face_encoding = self.deserialize_face_encoding(serialized_face_encoding)
+        self.update_face_encodings(self.remove_from_array(self.face_encodings, deserialized_face_encoding))
+
+        face_name = self.face_encodings_metadata[serialized_face_encoding]['Name']
+        print(f"{face_name}'s face was found, but it has expired. Removing from dataset.")
+        _ = self.face_encodings_metadata.pop(serialized_face_encoding)
+        # try:
+        
+        # except Exception as e:
+        #     print("Removing face from dataset failed. Face not found in dataset.")
+        #     print("Continuing with the rest of the program.") 
+        #     raise Exception(e)
+        # else:
+        #     _ = self.face_encodings_metadata.pop(serialized_face_encoding)
 
     def get_face_metadata_from_encoding(self, face_encoding):
         """ Returns the metadata of a face given its encoding """
@@ -112,6 +126,7 @@ class EphemeralFaceStorage(FaceStorage):
     def remove_face_if_expired(self, serialized_face_encoding):
         """ Removes a face if it has passed expiration time """
         if self.is_face_expired(serialized_face_encoding):
+            print("Removing a face from ephemeral storage.")
             self.remove_face_from_dataset(serialized_face_encoding)
 
     def clean(self):

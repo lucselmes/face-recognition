@@ -32,13 +32,13 @@ class RecognizerStream():
                 self.handle_known_face()
 
     def handle_unknown_face(self, frame, face_location, face_encoding):
-        # Add face to ephemeral storage
-        self.face_recognizer.ephemeral_storage.add_face_to_dataset("Unknown", face_encoding)
-
         # Prompt user to add it to the permanent database
         if not self.processing_unknown_face:
             self.processing_unknown_face = True
             name = self.gui_handler.prompt_for_name_of_unknown_face(frame, face_location)
+
+            # Add face to ephemeral storage
+            self.face_recognizer.ephemeral_storage.add_face_to_dataset(name, face_encoding)
             self.add_face_to_permanent_storage(name, face_encoding)
 
     def handle_known_face(self):
